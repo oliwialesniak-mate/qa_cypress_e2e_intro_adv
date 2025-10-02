@@ -1,4 +1,5 @@
-const { generateUser } = require('../support/generate');
+// cypress/e2e/signUp.cy.js
+import { generateUser } from '../support/generate';
 
 Cypress.on('uncaught:exception', () => false);
 
@@ -14,20 +15,16 @@ describe('Sign Up page', () => {
     cy.get('input[placeholder="Password"]').type(user.password);
 
     cy.intercept('POST', '**/api/users').as('createUser');
-    cy.contains('button', 'Sign in').click();
+    cy.contains('button', 'Sign up').click();
 
-    // Assert request went through
+    // Wait for signup request
     cy.wait('@createUser')
       .its('response.statusCode')
       .should('be.oneOf', [200, 307]);
 
-    // Best-effort check for username in nav (don’t fail test if missing)
-    cy.get('nav', { timeout: 15000 }).then(($nav) => {
-      if ($nav.text().includes(user.username)) {
-        cy.log('✅ Username found in nav');
-      } else {
-        cy.log('⚠️ Username not found in nav, likely demo app issue');
-      }
-    });
+    // Assert username is visible in nav
+    cy.get('nav', { timeout: 15000 })
+      .contains(user.username)
+      .should('be.visible');
   });
 });
